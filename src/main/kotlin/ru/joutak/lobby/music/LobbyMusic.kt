@@ -36,6 +36,10 @@ class LobbyMusic : JavaPlugin() {
         }
     }
 
+    private fun registerCommands() {
+        getCommand("lm")?.setExecutor(LMCommandExecutor)
+    }
+
     /**
      * Plugin startup logic
      */
@@ -45,6 +49,7 @@ class LobbyMusic : JavaPlugin() {
         loadConfig()
 
         // Register commands and events
+        registerCommands()
 
         logger.info("Плагин ${pluginMeta.name} версии ${pluginMeta.version} включен!")
     }
