@@ -1,6 +1,8 @@
 package ru.joutak.lobby.music
 
-import org.bukkit.configuration.file.YamlConfiguration
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.LinearComponents
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.SoundCategory
