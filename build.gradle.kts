@@ -25,8 +25,10 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib")
-}
 
+    implementation("com.sksamuel.hoplite:hoplite-core:2.9.0")
+    implementation("com.sksamuel.hoplite:hoplite-yaml:2.9.0")
+}
 
 kotlin {
     jvmToolchain(targetJavaVersion)
@@ -35,6 +37,7 @@ kotlin {
 tasks.shadowJar {
     archiveClassifier = ""
     archiveFileName.set("${project.name}.jar")
+    mergeServiceFiles()
 
     val serverPath = System.getenv("SERVER_PATH")
     if (System.getenv("TESTING") != null) {
