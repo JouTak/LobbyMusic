@@ -1,0 +1,22 @@
+zones:
+  test:
+    ==: Zone
+    location:
+      world: bp_lobby
+      x: -768.0
+      y: 24.0
+      z: -131.0
+      pitch: 0.0
+      yaw: 0.0
+    range: 16
+
+  test2:
+    ==: Zone
+    location:
+      world: bp_lobby
+      x: -760.0
+      y: 22.0
+      z: -122.0
+      pitch: 0.0
+      yaw: 0.0
+    range: 32
