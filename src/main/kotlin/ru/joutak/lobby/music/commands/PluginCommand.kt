@@ -1,8 +1,9 @@
 package ru.joutak.lobby.music.commands
 
 import org.bukkit.command.CommandSender
+import kotlin.collections.List
 
-abstract class LMCommand(
+abstract class PluginCommand(
     val name: String,
     val args: List<String>,
     val description: String,
@@ -13,7 +14,7 @@ abstract class LMCommand(
         args: Array<out String>,
     ): Boolean
 
-    abstract fun getHint(
+    abstract fun tabComplete(
         sender: CommandSender,
         args: Array<out String>,
     ): List<String>

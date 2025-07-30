@@ -12,15 +12,20 @@ import ru.joutak.lobby.music.LobbyMusic
 import java.util.SortedMap
 import java.util.TreeMap
 
-object LMCommandExecutor : CommandExecutor, TabExecutor {
-    private val subcommands: SortedMap<String, LMCommand> = TreeMap()
+abstract class PluginCommandExecutor(
+    val name: String,
+    val permission: String? = null,
+) : CommandExecutor,
+    TabExecutor {
+    protected val subcommands: SortedMap<String, PluginCommand> = TreeMap()
+    protected val subexecutors: SortedMap<String, PluginCommandExecutor> = TreeMap()
 
-    private fun registerCommand(command: LMCommand) {
+    protected fun registerCommand(command: PluginCommand) {
         subcommands[command.name] = command
     }
 
-    init {
-        registerCommand(LMHelp)
+    protected fun registerExecutor(executor: PluginCommandExecutor) {
+        subexecutors[executor.name] = executor
     }
 
     override fun onCommand(
@@ -35,6 +40,18 @@ object LMCommandExecutor : CommandExecutor, TabExecutor {
         }
 
         val subcommandName = args[0].lowercase()
+
+        val subexecutor = subexecutors[subcommandName]
+
+        val subArgs = if (args.size > 1) args.sliceArray(1 until args.size) else emptyArray()
+
+        if (subexecutor != null) {
+            if (!subexecutor.onCommand(sender, command, label, subArgs)) {
+                sendUsageMessage(sender)
+            }
+            return true
+        }
+
         val subcommand = subcommands[subcommandName]
 
         if (subcommand == null) {
@@ -48,8 +65,6 @@ object LMCommandExecutor : CommandExecutor, TabExecutor {
             )
             return true
         }
-
-        val subArgs = if (args.size > 1) args.sliceArray(1 until args.size) else emptyArray()
 
         if (subcommand.execute(sender, subArgs)) {
             return true
@@ -69,25 +84,45 @@ object LMCommandExecutor : CommandExecutor, TabExecutor {
             return subcommands.keys
                 .filter { sender.hasPermission(subcommands[it]?.permission ?: return@filter true) }
                 .filter { it.startsWith(args[0].lowercase()) }
-                .sorted()
+                .plus(
+                    subexecutors.keys
+                        .filter { sender.hasPermission(subexecutors[it]?.permission ?: return@filter true) }
+                        .filter { it.startsWith(args[0].lowercase()) },
+                ).sorted()
         }
 
         if (args.size > 1) {
             val subCommandName = args[0].lowercase()
-            val subCommand = subcommands[subCommandName] ?: return emptyList()
 
-            if (subCommand.permission != null && !sender.hasPermission(subCommand.permission)) {
+            if (subcommands[subCommandName] == null && subexecutors[subCommandName] == null) {
                 return emptyList()
             }
 
-            val subArgs = args.sliceArray(1 until args.size)
-            return subCommand.getHint(sender, subArgs)
+            if (subcommands[subCommandName] != null) {
+                val subCommand = subcommands[subCommandName]!!
+
+                if (subCommand.permission != null && !sender.hasPermission(subCommand.permission)) {
+                    return emptyList()
+                }
+
+                val subArgs = args.sliceArray(1 until args.size)
+                return subCommand.tabComplete(sender, subArgs)
+            } else {
+                val subExecutor = subexecutors[subCommandName]!!
+
+                if (subExecutor.permission != null && !sender.hasPermission(subExecutor.permission)) {
+                    return emptyList()
+                }
+
+                val subArgs = args.sliceArray(1 until args.size)
+                return subExecutor.onTabComplete(sender, command, alias, subArgs)
+            }
         }
 
         return emptyList()
     }
 
-    private fun sendUsageMessage(sender: CommandSender) {
+    protected fun sendUsageMessage(sender: CommandSender) {
         val usageMessage = LobbyMusic.TITLE
         subcommands.forEach { (name, subcommand) ->
             if (subcommand.permission == null || sender.hasPermission(subcommand.permission)) {
