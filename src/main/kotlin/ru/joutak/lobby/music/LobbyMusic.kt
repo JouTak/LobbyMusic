@@ -4,16 +4,25 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.LinearComponents
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.SoundCategory
+import org.bukkit.configuration.serialization.ConfigurationSerialization
 import org.bukkit.plugin.java.JavaPlugin
-import ru.joutak.lobby.music.commands.LMCommandExecutor
-import java.io.File
+import ru.joutak.lobby.music.commands.core.CoreCommandExecutor
+import ru.joutak.lobby.music.config.ConfigManager
+import ru.joutak.lobby.music.event.PlayerChangedWorldListener
+import ru.joutak.lobby.music.event.PlayerJoinZoneListener
+import ru.joutak.lobby.music.event.PlayerMoveListener
+import ru.joutak.lobby.music.event.PlayerQuitListener
+import ru.joutak.lobby.music.event.ZoneNextTrackListener
+import ru.joutak.lobby.music.music.Music
+import ru.joutak.lobby.music.music.MusicManager
+import ru.joutak.lobby.music.zone.Zone
+import ru.joutak.lobby.music.zone.ZoneManager
 
 class LobbyMusic : JavaPlugin() {
     companion object {
         @JvmStatic
         lateinit var instance: LobbyMusic
+
         val TITLE =
             LinearComponents.linear(
                 Component.text("L", NamedTextColor.DARK_BLUE),
@@ -29,29 +38,19 @@ class LobbyMusic : JavaPlugin() {
             )
     }
 
-    private var customConfig = YamlConfiguration()
-
-    private fun loadConfig() {
-        val fx = File(dataFolder, "config.yml")
-        if (!fx.exists()) {
-            saveResource("config.yml", true)
-        }
-    }
-
-    private fun registerCommands() {
-        getCommand("lm")?.setExecutor(LMCommandExecutor)
-    }
-
     /**
      * Plugin startup logic
      */
     override fun onEnable() {
         instance = this
 
+        // Load config and necessary data
         loadConfig()
+        loadData()
 
         // Register commands and events
         registerCommands()
+        registerEvents()
 
         logger.info("Плагин ${pluginMeta.name} версии ${pluginMeta.version} включен!")
     }
@@ -60,5 +59,35 @@ class LobbyMusic : JavaPlugin() {
      * Plugin shutdown logic
      */
     override fun onDisable() {
+        ZoneManager.stopAllZones()
+        saveData()
+    }
+
+    private fun registerCommands() {
+        getCommand("lm")?.setExecutor(CoreCommandExecutor)
+    }
+
+    private fun registerEvents() {
+        Bukkit.getPluginManager().registerEvents(PlayerJoinZoneListener, instance)
+        Bukkit.getPluginManager().registerEvents(ZoneNextTrackListener, instance)
+        Bukkit.getPluginManager().registerEvents(PlayerChangedWorldListener, instance)
+        Bukkit.getPluginManager().registerEvents(PlayerMoveListener, instance)
+        Bukkit.getPluginManager().registerEvents(PlayerQuitListener, instance)
+    }
+
+    private fun loadConfig() {
+        ConfigManager.load()
+    }
+
+    private fun loadData() {
+        ConfigurationSerialization.registerClass(Zone::class.java, "Zone")
+        ConfigurationSerialization.registerClass(Music::class.java, "Music")
+        MusicManager.load()
+        ZoneManager.load()
+    }
+
+    private fun saveData() {
+        ZoneManager.save()
+        MusicManager.save()
     }
 }
