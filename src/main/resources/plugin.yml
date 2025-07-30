@@ -7,3 +7,4 @@ depend: [ 'KotlinPlugins' ] # don't remove KotlinPlugin dependency
 commands:
   lm:
     description: Команды плагина LobbyMusic
+    permission: op
