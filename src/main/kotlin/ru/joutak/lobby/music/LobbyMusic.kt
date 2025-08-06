@@ -53,6 +53,15 @@ class LobbyMusic : JavaPlugin() {
         registerEvents()
 
         logger.info("Плагин ${pluginMeta.name} версии ${pluginMeta.version} включен!")
+
+        // Start playing music in all zones after delay
+        Bukkit.getScheduler().runTaskLater(
+            instance,
+            Runnable {
+                ZoneManager.startAllZones()
+            },
+            ConfigManager.getConfig().startDelay * 20L,
+        )
     }
 
     /**
@@ -76,7 +85,7 @@ class LobbyMusic : JavaPlugin() {
     }
 
     private fun loadConfig() {
-        ConfigManager.load()
+        ConfigManager.loadConfig()
     }
 
     private fun loadData() {

@@ -1,5 +1,10 @@
 package ru.joutak.lobby.music.config
 
+import com.sksamuel.hoplite.ConfigLoaderBuilder
+import com.sksamuel.hoplite.ExperimentalHoplite
+import com.sksamuel.hoplite.addFileSource
+import com.sksamuel.hoplite.watch.ReloadableConfig
+import com.sksamuel.hoplite.watch.watchers.FileWatcher
 import org.bukkit.configuration.file.YamlConfiguration
 import ru.joutak.lobby.music.music.Music
 import ru.joutak.lobby.music.utils.PluginManager
@@ -7,28 +12,50 @@ import ru.joutak.lobby.music.zone.Zone
 import java.io.File
 import java.io.IOException
 
+@OptIn(ExperimentalHoplite::class)
 object ConfigManager {
+    private val configFile = File(PluginManager.dataFolder, "config.yml")
     private val playlistFile = File(PluginManager.dataFolder, "playlist.yml")
     private val musicZonesFile = File(PluginManager.dataFolder, "zones.yml")
 
-    // private var config: Config = Config()
-    // @OptIn(ExperimentalHoplite::class)
+    private val configWatcher = FileWatcher(configFile.parent)
+    private val configLoader =
+        ConfigLoaderBuilder
+            .newBuilder()
+            .withClassLoader(PluginManager.lobbyMusic.javaClass.classLoader)
+            .addDefaultDecoders()
+            .addDefaultPreprocessors()
+            .addDefaultParamMappers()
+            .addDefaultPropertySources()
+            .addDefaultParsers()
+            .withExplicitSealedTypes()
+            .addFileSource(configFile)
+            .build()
+    private var configReloader: ReloadableConfig<Config>? = null
 
-    // val musicZones =
-    //     ConfigLoaderBuilder
-    //         .newBuilder()
-    //         .withClassLoader(PluginManager.lobbyMusic.javaClass.classLoader)
-    //         .addDefaultDecoders()
-    //         .addDefaultPreprocessors()
-    //         .addDefaultParamMappers()
-    //         .addDefaultPropertySources()
-    //         .addDefaultParsers()
-    //         .withExplicitSealedTypes()
-    //         .addFileSource(musicZonesFile)
-    //         .build()
-    //         .loadConfigOrThrow<MutableMap<String, MusicZone>>()
+    fun loadConfig() {
+        if (!configFile.exists()) {
+            PluginManager.lobbyMusic.saveResource("config.yml", true)
+            PluginManager.logger.warning(
+                "Отсутствует файл с конфигурацией плагина (${playlistFile.path}), был создан файл со стандартными значениями!",
+            )
+        }
 
-    fun load() {
+        getConfig()
+    }
+
+    fun getConfig(): Config {
+        try {
+            if (configReloader == null) {
+                configReloader = ReloadableConfig(configLoader, Config::class).addWatcher(configWatcher)
+            }
+            return configReloader!!.getLatest()
+        } catch (e: Exception) {
+            PluginManager.logger.severe("Ошибка валидации конфига: ${e.message}")
+            PluginManager.logger.warning("Использование стандартных значений из-за неверных значений в текущем конфиге.")
+            configReloader = null
+            return Config.default
+        }
     }
 
     fun loadPlaylist(): Set<Music>? {
@@ -73,9 +100,18 @@ object ConfigManager {
         val musicZonesFile = File(PluginManager.dataFolder, "zones.yml")
 
         if (!musicZonesFile.exists()) {
-            PluginManager.lobbyMusic.saveResource("zones.yml", true)
+            val musicZonesYaml = YamlConfiguration()
+            musicZonesYaml.set("zones", emptyMap<String, Zone>())
+
+            try {
+                musicZonesYaml.save(ConfigManager.musicZonesFile)
+            } catch (e: IOException) {
+                PluginManager.logger.severe("Ошибка при сохранении пустого списка зон: ${e.message}")
+                return null
+            }
+
             PluginManager.logger.warning(
-                "Отсутствует файл со списком зон (${musicZonesFile.path}), поэтому был создан файл с пустым списком.",
+                "Отсутствует файл со списком зон (${musicZonesFile.path}), был создан файл с пустым списком.",
             )
             return null
         }
