@@ -28,6 +28,7 @@ dependencies {
 
     implementation("com.sksamuel.hoplite:hoplite-core:2.9.0")
     implementation("com.sksamuel.hoplite:hoplite-yaml:2.9.0")
+    implementation("com.sksamuel.hoplite:hoplite-watch:2.9.0")
 }
 
 kotlin {
