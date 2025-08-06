@@ -7,6 +7,8 @@ object ZoneCommandExecutor : PluginCommandExecutor("zone") {
         registerCommand(AddCommand)
         registerCommand(InfoCommand)
         registerCommand(ListCommand)
+        registerCommand(PlayCommand)
         registerCommand(RemoveCommand)
+        registerCommand(StopCommand)
     }
 }

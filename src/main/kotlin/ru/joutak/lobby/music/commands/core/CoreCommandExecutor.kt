@@ -10,7 +10,5 @@ object CoreCommandExecutor : PluginCommandExecutor("lm") {
         registerExecutor(ZoneCommandExecutor)
 
         registerCommand(HelpCommand)
-        registerCommand(PlayCommand)
-        registerCommand(StopCommand)
     }
 }

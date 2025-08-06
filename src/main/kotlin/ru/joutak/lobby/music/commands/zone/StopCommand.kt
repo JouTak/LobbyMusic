@@ -7,9 +7,8 @@ import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.command.CommandSender
 import ru.joutak.lobby.music.commands.PluginCommand
 import ru.joutak.lobby.music.zone.ZoneManager
-import kotlin.collections.List
 
-object ListCommand : PluginCommand("list", emptyList(), "", null) {
+object StopCommand : PluginCommand("stop", listOf("name"), "", null) {
     override fun execute(
         sender: CommandSender,
         args: Array<out String>,
@@ -18,24 +17,23 @@ object ListCommand : PluginCommand("list", emptyList(), "", null) {
             return false
         }
 
-        if (ZoneManager.getMusicZones().isEmpty()) {
+        if (ZoneManager.containsMusicZone(args[0])) {
+            val zone = ZoneManager.getMusicZones()[args[0]]!!
+
+            zone.stop()
             sender.sendMessage(
                 LinearComponents.linear(
-                    Component.text("Отсутствуют", NamedTextColor.RED, TextDecoration.BOLD),
-                    Component.text(" зоны для проигрывания музыки."),
+                    Component.text("Проигрывание музыки в зоне "),
+                    Component.text(args[0], NamedTextColor.GOLD, TextDecoration.BOLD),
+                    Component.text(" приостановлено", NamedTextColor.RED),
+                    Component.text("!"),
                 ),
             )
         } else {
             sender.sendMessage(
                 LinearComponents.linear(
-                    Component.text("Зоны для проигрывания музыки:\n", NamedTextColor.GREEN, TextDecoration.BOLD),
-                    Component.text(
-                        ZoneManager
-                            .getMusicZones()
-                            .keys
-                            .sortedDescending()
-                            .joinToString("\n"),
-                    ),
+                    Component.text("Отсутствует", NamedTextColor.RED, TextDecoration.BOLD),
+                    Component.text(" зона для проигрывания музыки с таким именем."),
                 ),
             )
         }
@@ -46,5 +44,5 @@ object ListCommand : PluginCommand("list", emptyList(), "", null) {
     override fun tabComplete(
         sender: CommandSender,
         args: Array<out String>,
-    ): List<String> = emptyList()
+    ): List<String> = if (args.size == 1) ZoneManager.getMusicZones().keys.toList() else emptyList()
 }

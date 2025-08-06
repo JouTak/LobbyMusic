@@ -14,6 +14,10 @@ object ListCommand : PluginCommand("list", emptyList(), "", null) {
         sender: CommandSender,
         args: Array<out String>,
     ): Boolean {
+        if (args.size != this.args.size) {
+            return false
+        }
+
         if (MusicManager.getPlaylist().isEmpty()) {
             sender.sendMessage(
                 LinearComponents.linear(
