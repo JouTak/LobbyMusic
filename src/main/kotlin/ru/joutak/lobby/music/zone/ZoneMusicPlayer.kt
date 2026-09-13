@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitTask
 import ru.joutak.lobby.music.event.zone.ZoneNextTrackEvent
 import ru.joutak.lobby.music.music.Music
 import ru.joutak.lobby.music.music.MusicScheduler
+import ru.joutak.lobby.music.players_settings.PlayersSettingsManager
 import ru.joutak.lobby.music.utils.PluginManager
 
 class ZoneMusicPlayer(
@@ -27,6 +28,10 @@ class ZoneMusicPlayer(
     fun play() {
         if (currentMusic != null) return
 
+        playNext(musicScheduler.getNextMusic())
+    }
+
+    fun skipCurrentMusic() {
         playNext(musicScheduler.getNextMusic())
     }
 
@@ -49,7 +54,7 @@ class ZoneMusicPlayer(
     }
 
     fun playFor(player: Player) {
-        if (currentMusic == null) return
+        if (currentMusic == null || !PlayersSettingsManager.canHearMusic(player)) return
 
         player.playSound(
             zone.getCurrentMusic()!!.toSound(zone.getVolume()),
@@ -97,5 +102,16 @@ class ZoneMusicPlayer(
             ).stopSound(currentMusic!!.toSoundStop())
 
         currentMusic = null
+    }
+
+    fun stopFor(player: Player) {
+        ZoneManager
+            .getMusicZones()
+            .values
+            .forEach { zone -> zone.removeListener(player)}
+        Audience
+            .audience(
+                player
+            ).stopSound(currentMusic!!.toSoundStop())
     }
 }
