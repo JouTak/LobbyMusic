@@ -1,0 +1,12 @@
+tracks:
+- ==: Track
+  key: "lobby.music.blinding_lights"
+  duration: 203
+  author: "The Weeknd"
+  title: "Blinding Lights"
+
+- ==: Track
+  key: "lobby.music.robot_rock"
+  duration: 287
+  author: "Daft Punk"
+  title: "Robot Rock"

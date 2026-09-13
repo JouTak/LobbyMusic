@@ -1,5 +1,10 @@
 name: '$pluginName'
 version: '$version'
-main: ru.joutak.template.EmptyPlugin
-api-version: '1.21.4'
+main: ru.joutak.lobby.music.LobbyMusic
+api-version: '1.21.5'
 depend: [ 'KotlinPlugins' ] # don't remove KotlinPlugin dependency
+
+commands:
+  lm:
+    description: Команды плагина LobbyMusic
+    permission: op
